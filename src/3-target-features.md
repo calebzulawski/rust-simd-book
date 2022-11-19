@@ -5,13 +5,13 @@ Rust supports enabling a variety of these "target features".
 
 To view a list of features supported by a target, run:
 
-```
+```bash
 rustc --print target-features
 ```
 
 To view a list of CPUs supported by a target, run:
 
-```
+```bash
 rustc --print target-cpus
 ```
 

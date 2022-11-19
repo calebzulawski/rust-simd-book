@@ -1,0 +1,20 @@
+name: test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: rustup default nightly
+      - run: cargo install mdbook
+      - run: cargo install mdbook-svgbob2
+      - run: cargo install mdbook-admonish
+      - run: mdbook test
