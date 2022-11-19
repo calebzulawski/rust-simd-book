@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Runtime detection - SIMD Programming in Rust</title>
+        <title>Inlining and target features - SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html" class="active"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html" class="active"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,35 +144,74 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="runtime-detection-of-target-features"><a class="header" href="#runtime-detection-of-target-features">Runtime detection of target features</a></h1>
-<p>To safely use an optional target feature, the program must detect it at runtime.
-Once a feature is detected, it can be safely used:</p>
-<pre><pre class="playground"><code class="language-rust">#[target_feature(enable = &quot;avx&quot;)]
-unsafe fn use_avx() {
-    println!(&quot;This function uses AVX!&quot;)
+                        <h1 id="inlining-and-target-features"><a class="header" href="#inlining-and-target-features">Inlining and target features</a></h1>
+<p>Inlining and target features have a few interactions that can significantly affect the speed of your program.</p>
+<h2 id="target_feature-hinders-inlining"><a class="header" href="#target_feature-hinders-inlining"><code>#[target_feature]</code> hinders inlining</a></h2>
+<p>Modern CPUs often use <em>speculative execution</em>, where instructions following a branch (e.g. <code>if</code>) are executed before knowing the result.
+Once the branch result is known, the correct result is used.</p>
+<p>Consider the following example:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[target_feature(enable = &quot;avx&quot;)]
+unsafe fn avx_fn() {
+    println!(&quot;This function uses AVX.&quot;)
 }
 
-fn main() {
-    if is_x86_feature_detected!(&quot;avx&quot;) {
-        unsafe { use_avx() }
-    } else {
-        println!(&quot;We can't use AVX.&quot;);
-    }
+if is_x86_feature_detected!(&quot;avx&quot;) {
+    unsafe { avx_fn() }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>If speculative execution was used with this branch, the CPU might try to execute an AVX instruction before knowing if it even supports it, potentially crashing the program.
+Fortunately, speculative execution stops at function calls, so <code>#[target_feature]</code> avoids this by also preventing inlining.</p>
+<p>Since non-inlined function calls can be slow, try to use one large function tagged with <code>#[target_feature]</code>, rather than many separate functions.
+Additionally, multiple uses of <code>#[target_feature]</code> may not be necessary, as explained in the next paragraph.</p>
+<div id="admonition-info" class="admonition info">
+<div class="admonition-title">
+<p>Info</p>
+<p><a class="admonition-anchor-link" href="#admonition-info"></a></p>
+</div>
+<div>
+<p>Functions with <code>#[target_feature]</code> can still inline into other functions that support the same features via <code>#[target_feature]</code> or the <code>-Ctarget-feature</code> flag.</p>
+</div>
+</div>
+<h2 id="inlined-functions-can-inherit-target-features"><a class="header" href="#inlined-functions-can-inherit-target-features">Inlined functions can inherit target features</a></h2>
+<p>When a function is inlined into another function tagged with <code>#[target_feature]</code>, the inlined function is also compiled with those target features.
+To help ensure inlining, the <code>#[inline]</code> attribute can be used.
+This behavior can be used to write functions without worrying about what the final target features will be—in fact, this is what portable SIMD does!
+Functions in <code>std::simd</code> are inlined, allowing the user to specify the target features.</p>
+<p>In the following example, all of the code is generated using AVX, because it’s all inlined into the function with <code>#[target_feature]</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![feature(portable_simd)]
+</span><span class="boring">fn main() {}
+</span>use std::simd::f32x4;
+
+#[inline]
+fn double(x: f32x4) -&gt; f32x4 {
+    x * f32x4::splat(2.0) // The `splat` and `*` functions are inlined here
+}
+
+#[target_feature(enable = &quot;avx&quot;)]
+unsafe fn double_avx(x: f32x4) -&gt; f32x4 {
+    double(x) // The `double` function is inlined here
 }
 </code></pre></pre>
-<p>In this example, the <code>target_feature</code> attribute enables the <code>avx</code> feature.
-Unlike setting the target features with <code>RUSTFLAGS</code>, this limits the features to particular functions.
-The <code>is_*_feature_detected</code> macros can then be used to check if the feature is supported, and safely handle the situation where the feature is not present.</p>
+<h2 id="target-features-affect-calling-convention"><a class="header" href="#target-features-affect-calling-convention">Target features affect calling convention</a></h2>
+<p>The target features of a function affect its <em>calling convention</em>, the way memory is arranged when calling the function.
+Specifically, the target features affect which vector registers are used to pass vectors.</p>
+<p>To ensure that functions with different target features can still be used in the same program, vectors are passed by reference instead of by value.
+This can significantly slow down calling functions with vector arguments because it forces the vector to be written to memory.</p>
+<p>To avoid this behavior, avoid using vectors as arguments in non-inlined functions.
+Inlined functions are not affected because the function call is skipped entirely.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="3.1-rustflags.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="4-tricks.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="3.3-multiversion.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="4.2-native-vector-width.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -182,11 +221,11 @@ The <code>is_*_feature_detected</code> macros can then be used to check if the f
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="3.1-rustflags.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="4-tricks.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="3.3-multiversion.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="4.2-native-vector-width.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

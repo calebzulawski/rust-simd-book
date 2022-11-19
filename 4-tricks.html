@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html" class="active"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html" class="active"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -145,6 +145,9 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="tips-and-tricks"><a class="header" href="#tips-and-tricks">Tips and tricks</a></h1>
+<p>Portable SIMD is intended to be an accessible yet powerful tool.
+There are a few common pitfalls that can affect the speed of your code.
+This section will address those pitfalls and provide some recommendations on how to avoid them.</p>
 
                     </main>
 
@@ -154,6 +157,9 @@
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next" href="4.1-inlining.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -165,6 +171,9 @@
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next" href="4.1-inlining.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

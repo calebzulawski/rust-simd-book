@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Runtime detection - SIMD Programming in Rust</title>
+        <title>Native vector width - SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html" class="active"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html" class="active"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,37 +144,61 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="runtime-detection-of-target-features"><a class="header" href="#runtime-detection-of-target-features">Runtime detection of target features</a></h1>
-<p>To safely use an optional target feature, the program must detect it at runtime.
-Once a feature is detected, it can be safely used:</p>
-<pre><pre class="playground"><code class="language-rust">#[target_feature(enable = &quot;avx&quot;)]
-unsafe fn use_avx() {
-    println!(&quot;This function uses AVX!&quot;)
-}
+                        <h1 id="native-vector-width"><a class="header" href="#native-vector-width">Native vector width</a></h1>
+<p>Different architectures have different vector register sizes.
+To make it even more complicated, some architectures have different vector register sizes available depending on target features.</p>
+<h2 id="using-a-fixed-vector-size"><a class="header" href="#using-a-fixed-vector-size">Using a fixed vector size</a></h2>
+<p>Some algorithms might be better suited to particular vector sizes, even if it doesn’t match the native vector size.
+In the case of mismatched sizes, there are two possibilities:</p>
+<ul>
+<li>If the used vectors are smaller than the native vectors, native vectors will still be used but will be partially empty.
+In this scenario, the full parallel capability of the target is not used.</li>
+<li>If the used vectors are larger than the native vectors, multiple native vectors will be used to emulate one large vector.
+If too many native vectors are used, the program can <em>spill</em>, meaning it has run out of registers and must use (much slower) memory instead.</li>
+</ul>
+<p>Using a fixed vector size is a tradeoff between these possible issues and the design of the particular algorithm.</p>
+<h2 id="using-the-native-vector-size"><a class="header" href="#using-the-native-vector-size">Using the native vector size</a></h2>
+<p>The <code>target_features</code> crate provides a function for determining the native vector size:</p>
+<pre><code class="language-rust ignore">use target_features::CURRENT_TARGET;
 
-fn main() {
-    if is_x86_feature_detected!(&quot;avx&quot;) {
-        unsafe { use_avx() }
+// Different element types can have different vector sizes. Here we use `f32`.
+const N: usize = if let Some(size) = CURRENT_TARGET.suggested_vector_width::&lt;f32&gt;() {
+    size
+} else {
+    // If SIMD isn't supported natively, we use a vector of 1 element.
+    // This is effectively a scalar value.
+    1
+};
+
+/// Now we can use `Vector` instead of a particular vector type.
+type Vector = Simd&lt;f32, N&gt;;
+</code></pre>
+<p>When detecting features, the <code>multiversion</code> crate provides the same capability:</p>
+<pre><code class="language-rust ignore">use multiversion::{multiversion, target::selected_target};
+
+#[multiversion(targets = &quot;simd&quot;)]
+fn example() {
+    // The `selected_target` macro takes into account the detected optional features,
+    // and not just the base features used in the previous example.
+    const N: usize = if let Some(size) = selected_target!().suggested_vector_width::&lt;f32&gt;() {
+        size
     } else {
-        println!(&quot;We can't use AVX.&quot;);
-    }
+        1
+    };
+
+    /// Once again, we can use `Vector` instead of a particular vector type.
+    type Vector = Simd&lt;f32, N&gt;;
 }
-</code></pre></pre>
-<p>In this example, the <code>target_feature</code> attribute enables the <code>avx</code> feature.
-Unlike setting the target features with <code>RUSTFLAGS</code>, this limits the features to particular functions.
-The <code>is_*_feature_detected</code> macros can then be used to check if the feature is supported, and safely handle the situation where the feature is not present.</p>
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="3.1-rustflags.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="4.1-inlining.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="3.3-multiversion.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -182,13 +206,10 @@ The <code>is_*_feature_detected</code> macros can then be used to check if the f
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="3.1-rustflags.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="4.1-inlining.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="3.3-multiversion.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>
