@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Portable SIMD - SIMD Programming in Rust</title>
+        <title>Portable SIMD - Portable SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html" class="active"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">Portable SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html" class="active"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -112,7 +112,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">SIMD Programming in Rust</h1>
+                    <h1 class="menu-title">Portable SIMD Programming in Rust</h1>
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -156,10 +156,10 @@ Instead of using any special SIMD support in the Rust language, the compiler tri
 The downside is that the optimization only works in specific circumstances, since the compiler must be able to determine that it can split up a particular bit of code to run in parallel.</p>
 <h3 id="vendor-intrinsics"><a class="header" href="#vendor-intrinsics">Vendor Intrinsics</a></h3>
 <p>Hardware vendors provide special functions called <em>intrinsics</em> which correspond to particular instructions or behavior.
-In Rust, these are provded by the <a href="https://doc.rust-lang.org/std/arch/index.html"><code>std::arch</code> module</a>.</p>
+In Rust, these are provided by the <a href="https://doc.rust-lang.org/std/arch/index.html"><code>std::arch</code> module</a>.</p>
 <p>Using vendor intrinsics is a form of <em>explicit SIMD</em>, in which the programmer specifies exactly how the program is parallelized.
 Vendor intrinsics also provide complete access to features available to a particular target architecture, offering the best potential for performance.
-This capability comes at the cost of portability: code that uses vendor intrinsics will only work with that particular target.</p>
+This capability comes at the cost of portability: code that uses vendor intrinsics will only work on that particular target.</p>
 <h3 id="portable-simd-1"><a class="header" href="#portable-simd-1">Portable SIMD</a></h3>
 <p>Rust’s portable SIMD implementation offers a middle ground between automatic vectorization and vendor intrinsics.</p>
 <p>Portable SIMD is another form of <em>explicit SIMD</em> and allows the programmer to specify how the program is parallelized.

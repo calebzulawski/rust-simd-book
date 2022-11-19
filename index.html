@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>SIMD Programming in Rust - SIMD Programming in Rust</title>
+        <title>Portable SIMD Programming in Rust - Portable SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html" class="active">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html" class="active">Portable SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="4.1-inlining.html"><strong aria-hidden="true">4.1.</strong> Inlining and target features</a></li><li class="chapter-item expanded "><a href="4.2-native-vector-width.html"><strong aria-hidden="true">4.2.</strong> Native vector width</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -112,7 +112,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">SIMD Programming in Rust</h1>
+                    <h1 class="menu-title">Portable SIMD Programming in Rust</h1>
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -144,8 +144,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="simd-programming-in-rust"><a class="header" href="#simd-programming-in-rust">SIMD Programming in Rust</a></h1>
+                        <h1 id="portable-simd-programming-in-rust"><a class="header" href="#portable-simd-programming-in-rust">Portable SIMD Programming in Rust</a></h1>
 <p>by Caleb Zulawski</p>
+<p>Rust’s portable SIMD module enables users to write high performace code without wading into the arcane details of instruction sets.</p>
+<p>This book is intended for anyone who is familiar with Rust and curious about SIMD.
+A few types of people who might benefit from reading this:</p>
+<ul>
+<li>Someone who has never used SIMD but is interested in speeding up their code’s arithmetic</li>
+<li>A programmer looking to simplify a codebase with target-specific SIMD code</li>
+<li>An experienced SIMD programmer who wants to branch out to other target architectures</li>
+<li>Someone already familiar with portable SIMD who wants to fill out their knowledge</li>
+</ul>
 
                     </main>
 
