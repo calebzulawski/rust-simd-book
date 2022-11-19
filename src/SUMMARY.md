@@ -12,3 +12,5 @@
   - [Runtime detection](./3.2-detection.md)
   - [The easy way, with `multiversion`](./3.3-multiversion.md)
 - [Tips and tricks](./4-tricks.md)
+  - [Inlining and target features](./4.1-inlining.md)
+  - [Native vector width](./4.2-native-vector-width.md)
