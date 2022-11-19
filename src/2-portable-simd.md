@@ -24,8 +24,6 @@ Using vendor intrinsics is a form of _explicit SIMD_, in which the programmer sp
 Vendor intrinsics also provide complete access to features available to a particular target architecture, offering the best potential for performance.
 This capability comes at the cost of portability: code that uses vendor intrinsics will only work with that particular target.
 
-More information about using vendor intrinsics is found in the next section.
-
 ### Portable SIMD
 
 Rust's portable SIMD implementation offers a middle ground between automatic vectorization and vendor intrinsics.
