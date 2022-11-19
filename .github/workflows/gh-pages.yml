@@ -13,16 +13,10 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
       - uses: actions/checkout@v3
-  
-      - name: Setup mdBook
-        run:
-          - cargo install mdbook
-          - cargo install mdbook-svgbob2
-          - cargo install mdbook-admonish
-  
-      - name: Build
-        run: mdbook build
-  
+      - run: cargo install mdbook
+      - run: cargo install mdbook-svgbob2
+      - run: cargo install mdbook-admonish
+      - run: mdbook build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.ref == 'refs/heads/main' }}
