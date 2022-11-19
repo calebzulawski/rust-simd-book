@@ -3,7 +3,7 @@ authors = ["Caleb Zulawski"]
 language = "en"
 multilingual = false
 src = "src"
-title = "SIMD Programming in Rust"
+title = "Portable SIMD Programming in Rust"
 
 [preprocessor.svgbob2]
 

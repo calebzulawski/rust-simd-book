@@ -1,6 +1,6 @@
 # Summary
 
-[SIMD Programming in Rust](./0-title.md)
+[Portable SIMD Programming in Rust](./0-title.md)
 
 - [A quick introduction](./1-intro.md)
 - [Portable SIMD](./2-portable-simd.md)

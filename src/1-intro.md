@@ -1,6 +1,9 @@
-# A quick introduction to SIMD
+# A quick introduction
 
 SIMD is short for *single instruction, multiple data*.
+As the name suggests, a single SIMD instruction can operate on multiple data values simultaneously.
+This type of parallelism can speed up programs, and comes with much lower overhead and complexity than other types of parallelism, such as concurrency.
+
 Consider the following function:
 
 ```rust

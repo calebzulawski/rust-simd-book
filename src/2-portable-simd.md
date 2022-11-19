@@ -18,11 +18,11 @@ The downside is that the optimization only works in specific circumstances, sinc
 ### Vendor Intrinsics
 
 Hardware vendors provide special functions called _intrinsics_ which correspond to particular instructions or behavior.
-In Rust, these are provded by the [`std::arch` module](https://doc.rust-lang.org/std/arch/index.html).
+In Rust, these are provided by the [`std::arch` module](https://doc.rust-lang.org/std/arch/index.html).
 
 Using vendor intrinsics is a form of _explicit SIMD_, in which the programmer specifies exactly how the program is parallelized.
 Vendor intrinsics also provide complete access to features available to a particular target architecture, offering the best potential for performance.
-This capability comes at the cost of portability: code that uses vendor intrinsics will only work with that particular target.
+This capability comes at the cost of portability: code that uses vendor intrinsics will only work on that particular target.
 
 ### Portable SIMD
 
