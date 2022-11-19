@@ -11,21 +11,21 @@ jobs:
     runs-on: ubuntu-20.04
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-  steps:
-    - uses: actions/checkout@v3
-
-    - name: Setup mdBook
-      run:
-        - cargo install mdbook
-        - cargo install mdbook-svgbob2
-        - cargo install mdbook-admonish
-
-    - name: Build
-      run: mdbook build
-
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.ref == 'refs/heads/main' }}
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./book
+    steps:
+      - uses: actions/checkout@v3
+  
+      - name: Setup mdBook
+        run:
+          - cargo install mdbook
+          - cargo install mdbook-svgbob2
+          - cargo install mdbook-admonish
+  
+      - name: Build
+        run: mdbook build
+  
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./book
