@@ -1,1 +1,0 @@
-# Explicit SIMD (std::arch)
