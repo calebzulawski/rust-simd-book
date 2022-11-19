@@ -52,4 +52,4 @@ addps +------+ + +------+ = +------+
 </center>
 
 SIMD operations make use of special _vector_ registers to perform operations on multiple values at once.
-Each element of these vectors are also known as _lanes_.
+The elements of these vectors are also known as _lanes_.
