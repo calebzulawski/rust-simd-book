@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Runtime detection - SIMD Programming in Rust</title>
+        <title>Vectors - SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-target-features.html"><strong aria-hidden="true">2.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-rustflags.html"><strong aria-hidden="true">2.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="2.2-detection.html" class="active"><strong aria-hidden="true">2.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="2.3-multiversion.html"><strong aria-hidden="true">2.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="3-portable-simd.html"><strong aria-hidden="true">3.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-vectors.html"><strong aria-hidden="true">3.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="3.2-masks.html"><strong aria-hidden="true">3.2.</strong> Masks</a></li></ol></li><li class="chapter-item expanded "><a href="4-std-arch.html"><strong aria-hidden="true">4.</strong> Explicit SIMD (std::arch)</a></li><li class="chapter-item expanded "><a href="5-tricks.html"><strong aria-hidden="true">5.</strong> Tips and tricks</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html" class="active"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,35 +144,72 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="runtime-detection-of-target-features"><a class="header" href="#runtime-detection-of-target-features">Runtime detection of target features</a></h1>
-<p>To safely use an optional target feature, the program must detect it at runtime.
-Once a feature is detected, it can be safely used:</p>
-<pre><pre class="playground"><code class="language-rust">#[target_feature(enable = &quot;avx&quot;)]
-unsafe fn use_avx() {
-    println!(&quot;This function uses AVX!&quot;)
-}
+                        <h1 id="vectors"><a class="header" href="#vectors">Vectors</a></h1>
+<p>Rust provides portable SIMD vectors with the <a href="https://doc.rust-lang.org/std/simd/struct.Simd.html"><code>Simd</code> type</a>.</p>
+<p><code>Simd&lt;T, N&gt;</code> can be thought of as a variation on <code>[T; N]</code>.
+<code>Simd</code> has the same layout as an array, but with a greater alignment.
+In fact, <code>Simd&lt;T, N&gt;</code> is easily convertible to and from <code>[T; N]</code>, and supports some of the same operations, such as indexing.</p>
+<h2 id="elementwise-operations-on-vectors"><a class="header" href="#elementwise-operations-on-vectors">Elementwise operations on vectors</a></h2>
+<p>Unlike arrays, <code>Simd&lt;T, N&gt;</code> is not just a container.
+While it looks like an array, it also operates like <code>T</code>.
+Vectors implement all of the same basic operators as its scalar type <code>T</code>, meaning you can do the following:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![feature(portable_simd)]
+</span><span class="boring">fn main() {}
+</span>use std::simd::f32x4; // an alias for Simd&lt;f32, 4&gt;
 
-fn main() {
-    if is_x86_feature_detected!(&quot;avx&quot;) {
-        unsafe { use_avx() }
-    } else {
-        println!(&quot;We can't use AVX.&quot;);
-    }
+/// y = mx + b
+fn y(m: f32x4, x: f32x4, b: f32x4) -&gt; f32x4 {
+    m * x + b
 }
 </code></pre></pre>
-<p>In this example, the <code>target_feature</code> attribute enables the <code>avx</code> feature.
-Unlike setting the target features with <code>RUSTFLAGS</code>, this limits the features to particular functions.
-The <code>is_*_feature_detected</code> macros can then be used to check if the feature is supported, and safely handle the situation where the feature is not present.</p>
+<p>These operators work <em>elementwise</em>, meaning the operator is applied one element at a time.</p>
+<p>Vectors even implement special functions (e.g. <code>abs</code>) with special traits:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![feature(portable_simd)]
+</span><span class="boring">fn main() {}
+</span>use std::simd::{f32x4, SimdFloat}; // SimdFloat provides abs
+
+/// |a - b|
+fn distance(a: f32x4, b: f32x4) -&gt; f32x4 {
+    (a - b).abs()
+}
+</code></pre></pre>
+<h2 id="reduction-operations"><a class="header" href="#reduction-operations">Reduction operations</a></h2>
+<p>Sometimes you may want to perform an operation across a single vector, rather than between vectors.
+These operations are referred to as <em>reductions</em>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![feature(portable_simd)]
+</span><span class="boring">fn main() {}
+</span>use std::simd::{f32x4, SimdFloat}; // SimdFloat provides reduce_sum
+
+fn sum(vectors: &amp;[f32x4]) -&gt; f32 {
+    let mut sums = f32x4::splat(0.0); // splat fills each element with the value
+    for v in vectors {
+        sums += v;
+    }
+    
+    // `sums` now contains the elementwise sums, so we must sum across the vector
+    sums.reduce_sum()
+}
+</code></pre></pre>
+<div id="admonition-note" class="admonition note">
+<div class="admonition-title">
+<p>Note</p>
+<p><a class="admonition-anchor-link" href="#admonition-note"></a></p>
+</div>
+<div>
+<p>Reductions are slower than elementwise operations in most cases.
+It’s best to use elementwise operations when possible, and use reductions only when necessary.</p>
+</div>
+</div>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="2.1-rustflags.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="2-portable-simd.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="2.3-multiversion.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="2.2-masks.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -182,11 +219,11 @@ The <code>is_*_feature_detected</code> macros can then be used to check if the f
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="2.1-rustflags.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="2-portable-simd.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="2.3-multiversion.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="2.2-masks.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

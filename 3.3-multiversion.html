@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Masks - SIMD Programming in Rust</title>
+        <title>The easy way, with multiversion - SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-target-features.html"><strong aria-hidden="true">2.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-rustflags.html"><strong aria-hidden="true">2.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="2.2-detection.html"><strong aria-hidden="true">2.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="2.3-multiversion.html"><strong aria-hidden="true">2.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="3-portable-simd.html"><strong aria-hidden="true">3.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-vectors.html"><strong aria-hidden="true">3.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="3.2-masks.html" class="active"><strong aria-hidden="true">3.2.</strong> Masks</a></li></ol></li><li class="chapter-item expanded "><a href="4-std-arch.html"><strong aria-hidden="true">4.</strong> Explicit SIMD (std::arch)</a></li><li class="chapter-item expanded "><a href="5-tricks.html"><strong aria-hidden="true">5.</strong> Tips and tricks</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html" class="active"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,69 +144,49 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="masks"><a class="header" href="#masks">Masks</a></h1>
-<p>Rust also provides a “truthy” vector type: <a href="https://doc.rust-lang.org/std/simd/struct.Mask.html"><code>Mask&lt;T, N&gt;</code></a>.</p>
-<p>While operating like <code>bool</code>, the element type of a mask is always a signed integer.
-The size of the integer corresponds to the vector elements that the mask can interact with.</p>
-<p>Masks operate like <code>[bool; N]</code>, but their layout is unspecified and target-specific.</p>
-<h2 id="elementwise-operations-with-masks"><a class="header" href="#elementwise-operations-with-masks">Elementwise operations with masks</a></h2>
-<p>Masks are typically prodced by comparisons.
-Like vectors, they also support elementwise operations:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// m32x4 is an alias for Mask&lt;i32, 4&gt;
-//
-// SimdPartialOrd is the elementwise counterpart to PartialOrd,
-// and provides `simd_lt`, `simd_gt`, etc.
-use std::simd::{f32x4, m32x4, SimdPartialOrd};
+                        <h1 id="the-easy-way-with-multiversion"><a class="header" href="#the-easy-way-with-multiversion">The easy way, with multiversion</a></h1>
+<p>The <a href="https://crates.io/crates/multiversion"><code>multiversion</code> crate</a> is helpful for automatically <em>multiversioning</em> functions.</p>
+<p>A multiversioned function is one that’s compiled multiple times for any number of targets, with the optimal function selected at runtime.</p>
+<pre><code class="language-rust ignore">use multiversion::multiversion;
 
-fn is_between(x: f32x4, lower_bound: f32x4, upper_bound: f32x4) -&gt; m32x4 {
-    let above_lower_bound: m32x4 = x.simd_gt(lower_bound);
-    let below_upper_bound: m32x4 = x.simd_lt(upper_bound);
-    above_lower_bound &amp; below_upper_bound
+#[multiversion(targets(
+    &quot;x86_64+avx&quot;,
+    &quot;x86_64+sse4.2&quot;,
+    &quot;arm+neon&quot;,
+))]
+fn multiversioned() {
+    println!(&quot;This function uses whichever features are available&quot;)
 }
-<span class="boring">}
-</span></code></pre></pre>
-<h2 id="reduction-operations"><a class="header" href="#reduction-operations">Reduction operations</a></h2>
-<p>Masks also support reduction operations:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use std::simd::{f32x4, m32x4, SimdFloat}; // SimdFloat provides is_infinite
+</code></pre>
+<p>Multiversion also supports automatically targetting all SIMD features on all architectures:</p>
+<pre><code class="language-rust ignore">use multiversion::multiversion;
 
-fn any_infinite(vectors: &amp;[f32x4]) -&gt; bool {
-    let mut any_infinite = m32x4::splat(false);
-    for v in vectors {
-        infinite |= v.is_infinite();
-    }
-    
-    // check if any element is `true`
-    infinite.any()
+#[multiversion(targets = &quot;simd&quot;)]
+fn multiversioned() {
+    println!(&quot;This function automatically uses the best SIMD feature available&quot;)
 }
-<span class="boring">}
-</span></code></pre></pre>
-<h2 id="conditionally-selecting-elements"><a class="header" href="#conditionally-selecting-elements">Conditionally selecting elements</a></h2>
-<p>Masks can be used to conditionally select elements from two vectors:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use std::simd::{f32x4, m32x4, SimdFloat}; // SimdFloat provides is_nan
-
-/// replace nan values with 0
-fn replace_nan(x: f32x4) -&gt; f32x4 {
-    let nans: m32x4 = x.is_nan();
-    nans.select(f32x4::splat(0.0), x)
-}
-<span class="boring">}
-</span></code></pre></pre>
+</code></pre>
+<p>For each target, a copy of the function is compiled with the appropriate <code>target_feature</code> attributes.
+At runtime, the optimal function is selected.</p>
+<div id="admonition-info" class="admonition info">
+<div class="admonition-title">
+<p>Info</p>
+<p><a class="admonition-anchor-link" href="#admonition-info"></a></p>
+</div>
+<div>
+<p>Compared to the example on the previous page, <code>multiversion</code> also selects the appropriate function with less performance overhead.</p>
+</div>
+</div>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="3.1-vectors.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="3.2-detection.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="4-std-arch.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="4-tricks.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -216,11 +196,11 @@ fn replace_nan(x: f32x4) -&gt; f32x4 {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="3.1-vectors.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="3.2-detection.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="4-std-arch.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="4-tricks.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

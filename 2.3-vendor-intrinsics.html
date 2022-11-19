@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>The easy way, with multiversion - SIMD Programming in Rust</title>
+        <title>Vendor Intrinsics - SIMD Programming in Rust</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-target-features.html"><strong aria-hidden="true">2.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-rustflags.html"><strong aria-hidden="true">2.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="2.2-detection.html"><strong aria-hidden="true">2.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="2.3-multiversion.html" class="active"><strong aria-hidden="true">2.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="3-portable-simd.html"><strong aria-hidden="true">3.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-vectors.html"><strong aria-hidden="true">3.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="3.2-masks.html"><strong aria-hidden="true">3.2.</strong> Masks</a></li></ol></li><li class="chapter-item expanded "><a href="4-std-arch.html"><strong aria-hidden="true">4.</strong> Explicit SIMD (std::arch)</a></li><li class="chapter-item expanded "><a href="5-tricks.html"><strong aria-hidden="true">5.</strong> Tips and tricks</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="0-title.html">SIMD Programming in Rust</a></li><li class="chapter-item expanded "><a href="1-intro.html"><strong aria-hidden="true">1.</strong> A quick introduction</a></li><li class="chapter-item expanded "><a href="2-portable-simd.html"><strong aria-hidden="true">2.</strong> Portable SIMD</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="2.1-vectors.html"><strong aria-hidden="true">2.1.</strong> Vectors</a></li><li class="chapter-item expanded "><a href="2.2-masks.html"><strong aria-hidden="true">2.2.</strong> Masks</a></li><li class="chapter-item expanded "><a href="2.3-vendor-intrinsics.html" class="active"><strong aria-hidden="true">2.3.</strong> Vendor Intrinsics</a></li></ol></li><li class="chapter-item expanded "><a href="3-target-features.html"><strong aria-hidden="true">3.</strong> Target Features</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="3.1-rustflags.html"><strong aria-hidden="true">3.1.</strong> Program-wide with RUSTFLAGS</a></li><li class="chapter-item expanded "><a href="3.2-detection.html"><strong aria-hidden="true">3.2.</strong> Runtime detection</a></li><li class="chapter-item expanded "><a href="3.3-multiversion.html"><strong aria-hidden="true">3.3.</strong> The easy way, with multiversion</a></li></ol></li><li class="chapter-item expanded "><a href="4-tricks.html"><strong aria-hidden="true">4.</strong> Tips and tricks</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,55 +144,29 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="the-easy-way-with-multiversion"><a class="header" href="#the-easy-way-with-multiversion">The easy way, with multiversion</a></h1>
-<p>The <a href="https://crates.io/crates/multiversion"><code>multiversion</code> crate</a> is helpful for automatically <em>multiversioning</em> functions.</p>
-<p>A multiversioned function is one that’s compiled multiple times for any number of targets, with the optimal function selected at runtime.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use multiversion::multiversion;
+                        <h1 id="vendor-intrinsics"><a class="header" href="#vendor-intrinsics">Vendor Intrinsics</a></h1>
+<p>Sometimes you can’t avoid using vendor intrinsics.
+In those cases, it’s easy to convert between vendor vector types and portable SIMD vector types:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![feature(portable_simd)]
+</span><span class="boring">fn main() {}
+</span>use std::arch::x86_64::{_mm_stream_ps, __m128};
+use std::simd::f32x4;
 
-#[multiversion(targets(
-    &quot;x86_64+avx&quot;,
-    &quot;x86_64+sse4.2&quot;,
-    &quot;arm+neon&quot;,
-))]
-fn multiversioned() {
-    println!(&quot;This function uses whichever features are available&quot;)
+unsafe fn non_temporal_store(addr: *mut f32, vector: f32x4) {
+    let vendor: __m128 = vector.into(); // convert into the vendor type
+    _mm_stream_ps(addr, vendor);
 }
-<span class="boring">}
-</span></code></pre></pre>
-<p>Multiversion also supports automatically targetting all SIMD features on all architectures:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>use multiversion::multiversion;
-
-#[multiversion(targets = &quot;simd&quot;)]
-fn multiversioned() {
-    println!(&quot;This function automatically uses the best SIMD feature available&quot;)
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>For each target, a copy of the function is compiled with the appropriate <code>target_feature</code> attributes.
-At runtime, the optimal function is selected.</p>
-<div id="admonition-info" class="admonition info">
-<div class="admonition-title">
-<p>Info</p>
-<p><a class="admonition-anchor-link" href="#admonition-info"></a></p>
-</div>
-<div>
-<p>Compared to the example on the previous page, <code>multiversion</code> also selects the appropriate function with less performance overhead.</p>
-</div>
-</div>
+</code></pre></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="2.2-detection.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="2.2-masks.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="3-portable-simd.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="3-target-features.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -202,11 +176,11 @@ At runtime, the optimal function is selected.</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="2.2-detection.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="2.2-masks.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="3-portable-simd.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="3-target-features.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
