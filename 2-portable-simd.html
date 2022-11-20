@@ -164,7 +164,7 @@ This capability comes at the cost of portability: code that uses vendor intrinsi
 <p>Rust’s portable SIMD implementation offers a middle ground between automatic vectorization and vendor intrinsics.</p>
 <p>Portable SIMD is another form of <em>explicit SIMD</em> and allows the programmer to specify how the program is parallelized.
 Unlike vendor intrinsics, portable SIMD works on all targets.
-Rust’s portable SIMD vector types provide the most common SIMD operations that perform well on most SIMD instruction sets.</p>
+Rust’s portable SIMD vector types provide the most common SIMD operations that perform well on most targets.</p>
 <p>In many cases, using portable SIMD can result in similar or identical compiled programs as the equivalent code using vendor intrinsics.
 With portable SIMD, programmers have the ability to write intricate vectorized programs and be confident that their code will not just perform well, but will also act as expected on any target architecture.
 Reaching for vendor intrinsics is often only necessary when taking advantage of an unusual feature provided by a specific target.</p>

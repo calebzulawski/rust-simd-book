@@ -149,7 +149,7 @@
 The following example enables <code>avx</code> and <code>avx2</code>, and disables <code>fma</code>:</p>
 <pre><code class="language-bash">RUSTFLAGS=&quot;-Ctarget-features=+avx,+avx2,-fma&quot; cargo build
 </code></pre>
-<p>Instead of targetting specific features, a particular CPU can be targeted:</p>
+<p>Instead of targeting specific features, a particular CPU can be targeted:</p>
 <pre><code class="language-bash">RUSTFLAGS=&quot;-Ctarget-cpu=skylake&quot; cargo build
 </code></pre>
 <p>Rust can also target your specific CPU, with the special <code>native</code> CPU:</p>
