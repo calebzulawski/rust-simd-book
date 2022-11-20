@@ -30,7 +30,7 @@ Rust's portable SIMD implementation offers a middle ground between automatic vec
 
 Portable SIMD is another form of _explicit SIMD_ and allows the programmer to specify how the program is parallelized.
 Unlike vendor intrinsics, portable SIMD works on all targets.
-Rust's portable SIMD vector types provide the most common SIMD operations that perform well on most SIMD instruction sets.
+Rust's portable SIMD vector types provide the most common SIMD operations that perform well on most targets.
 
 In many cases, using portable SIMD can result in similar or identical compiled programs as the equivalent code using vendor intrinsics.
 With portable SIMD, programmers have the ability to write intricate vectorized programs and be confident that their code will not just perform well, but will also act as expected on any target architecture.
