@@ -147,23 +147,8 @@
                         <h1 id="inlining-and-target-features"><a class="header" href="#inlining-and-target-features">Inlining and target features</a></h1>
 <p>Inlining and target features have a few interactions that can significantly affect the speed of your program.</p>
 <h2 id="target_feature-hinders-inlining"><a class="header" href="#target_feature-hinders-inlining"><code>#[target_feature]</code> hinders inlining</a></h2>
-<p>Modern CPUs often use <em>speculative execution</em>, where instructions following a branch (e.g. <code>if</code>) are executed before knowing the result.
-Once the branch path is known, the correct result is used.</p>
-<p>Consider the following example:</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>#[target_feature(enable = &quot;avx&quot;)]
-unsafe fn avx_fn() {
-    println!(&quot;This function uses AVX.&quot;)
-}
-
-if is_x86_feature_detected!(&quot;avx&quot;) {
-    unsafe { avx_fn() }
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>If speculative execution was used with this branch, the CPU might try to execute an AVX instruction before knowing if it even supports it, potentially crashing the program.
-Fortunately, speculative execution stops at function calls, so <code>#[target_feature]</code> avoids this by also preventing inlining.</p>
+<p>Compilers are free to optimize functions by reordering their operations, as long as it doesn’t change the observable results.
+To prevent these optimizations from reordering target feature detection, the <code>#[target_feature]</code> attribute prevents inlining.</p>
 <p>Since non-inlined function calls can be slow, try to use one large function tagged with <code>#[target_feature]</code>, rather than many separate functions.
 Additionally, multiple uses of <code>#[target_feature]</code> may not be necessary, as explained in the next paragraph.</p>
 <div id="admonition-info" class="admonition info">

@@ -147,7 +147,7 @@
                         <h1 id="vectors"><a class="header" href="#vectors">Vectors</a></h1>
 <p>Rust provides portable SIMD vectors with the <a href="https://doc.rust-lang.org/std/simd/struct.Simd.html"><code>Simd</code> type</a>.</p>
 <p><code>Simd&lt;T, N&gt;</code> can be thought of as a variation of <code>[T; N]</code>.
-<code>Simd</code> has the same “shape” as an array, but with a greater alignment.
+<code>Simd</code> has the same “shape” as an array, but may have a greater alignment.
 In fact, <code>Simd&lt;T, N&gt;</code> is easily convertible to and from <code>[T; N]</code>, and supports some of the same operations, such as indexing.</p>
 <h2 id="elementwise-operations-on-vectors"><a class="header" href="#elementwise-operations-on-vectors">Elementwise operations on vectors</a></h2>
 <p>Unlike arrays, <code>Simd&lt;T, N&gt;</code> is not just a container.
